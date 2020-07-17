@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'dart:async';
 
+import 'world.dart';
+
 void main() {
   runZoned(() {
     test();
@@ -9,37 +11,40 @@ void main() {
   });
 }
 
-///0 = enemy
-///1 = tower
-
 Future<void> test() async {
   try {
     int socketN = 0;
-    int w = 3;
-    int h = 3;
-    Map<List<int>, int> world = {[1, 1]: 0, [0, 0]: 1};                                                                                                                                      
+    World world = World(
+      3,
+      3,
+      {
+        [1, 1]: 0,
+      },
+    );
     Map<Socket, int> sockets = {};
-    ServerSocket server = await ServerSocket.bind(InternetAddress.anyIPv4, 9000);
+    ServerSocket server =
+        await ServerSocket.bind(InternetAddress.anyIPv4, 9000);
     server.listen((Socket socket) {
       socketN++;
       sockets[socket] = socketN;
       print("[${sockets[socket]}] Listening:");
-      for(Socket client in sockets.keys) {
-        client.add([w, h] + world.entries.map((MapEntry<List<int>, int> item) => item.key + [item.value]).fold<List<int>>([], (List<int> prev, List<int> next) => prev+next));
-      } 
+      for (Socket client in sockets.keys) {
+        client.add([world.w, world.h] +
+            world.world.entries
+                .map((MapEntry<List<int>, int> item) => item.key + [item.value])
+                .fold<List<int>>(
+                    [], (List<int> prev, List<int> next) => prev + next));
+      }
       socket.listen((List<int> message) {
         print("[${sockets[socket]}] Got message ${message}");
-        bool valid = true;
-        for(List<int> key in world.keys) {
-          if(key[0] == message[0] && key[1] == message[1]) {
-            valid = false;
-          }
-        }
-        if (valid) {
-          world[message] = 1;
-        }
-        for(Socket client in sockets.keys) {
-          client.add([w, h] + world.entries.map((MapEntry<List<int>, int> item) => item.key + [item.value]).fold<List<int>>([], (List<int> prev, List<int> next) => prev+next));
+        world.addTower(message);
+        for (Socket client in sockets.keys) {
+          client.add([world.w, world.h] +
+              world.world.entries
+                  .map((MapEntry<List<int>, int> item) =>
+                      item.key + [item.value])
+                  .fold<List<int>>(
+                      [], (List<int> prev, List<int> next) => prev + next));
         }
         print("[${sockets[socket]}] Sent message");
       }, onError: (Object e, StackTrace st) {
@@ -58,4 +63,3 @@ Future<void> test() async {
     print("eerror: $e, stack trace: $st");
   }
 }
-
