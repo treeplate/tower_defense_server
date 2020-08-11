@@ -8,12 +8,12 @@ class World {
       for (MapEntry<List<int>, int> entry in world.entries) {
         if (entry.value == 1) {
           List<List<int>> possible = surrounded(entry.key);
-          world.remove(possible
-              .where((element) => world.keys.any((element2) =>
+          print("ATC: ${world.remove(world.keys
+              .where((element) => possible.any((element2) =>
                   element2[0] == element[0] &&
                   element2[1] == element[1] &&
-                  world[element2] == 0))
-              .first);
+                  world[element] == 0))
+              .first)}");
         }
       }
     });
