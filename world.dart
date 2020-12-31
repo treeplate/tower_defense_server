@@ -3,19 +3,23 @@ import 'dart:async';
 ///0 = enemy
 ///1 = tower
 class World {
-  World(this.w, this.h, this.world) {
+  World(this.w, this.h, this.world, void Function() callback) {
     Timer.periodic(Duration(seconds: 1), (Timer timer) {
+      List<List<int>> todo = [];
       for (MapEntry<List<int>, int> entry in world.entries) {
         if (entry.value == 1) {
           List<List<int>> possible = surrounded(entry.key);
-          print("ATC: ${world.remove(world.keys
-              .where((element) => possible.any((element2) =>
+          List<int> working = world.keys
+              .firstWhere((element) => possible.any((element2) =>
                   element2[0] == element[0] &&
                   element2[1] == element[1] &&
-                  world[element] == 0))
-              .first)}");
+                  world[element] == 0), orElse: () => null);
+         //print(working);
+         if(working != null) todo.add(working);
         }
       }
+      for(List<int> thing in todo) world.remove(thing);
+      callback();
     });
   }
   void addTower(List<int> at) {

@@ -4,7 +4,9 @@ import 'dart:async';
 import 'world.dart';
 
 void main() {
+  print("Main()");
   runZoned(() {
+    print("Running zoned");
     test();
   }, onError: (Object e, StackTrace st) {
     print("zone error $e, stack trace: $st");
@@ -14,17 +16,36 @@ void main() {
 Future<void> test() async {
   try {
     int socketN = 0;
+    Map<Socket, int> sockets = {};
+    ServerSocket server =
+        await ServerSocket.bind(InternetAddress.anyIPv4, 9000);
+    void Function() callback;
+    print("Creating world...");
     World world = World(
       3,
       3,
       {
         [1, 1]: 0,
       },
+      () => callback()
     );
-    Map<Socket, int> sockets = {};
-    ServerSocket server =
-        await ServerSocket.bind(InternetAddress.anyIPv4, 9000);
+    print("Created world.");
+    callback =       () {
+        for(Socket client in sockets.keys) {
+                    client.add([world.w, world.h] +
+              world.world.entries
+                  .map((MapEntry<List<int>, int> item) =>
+                      item.key + [item.value])
+                  .fold<List<int>>(
+                      [], (List<int> prev, List<int> next) => prev + next));
+
+        }
+      };
+    print("Created callBACK")
+
+
     server.listen((Socket socket) {
+      print("Got socket.");
       socketN++;
       sockets[socket] = socketN;
       print("[${sockets[socket]}] Listening:");
@@ -59,6 +80,7 @@ Future<void> test() async {
     }, onError: (Object e, StackTrace st) {
       print("oerror: $e, stack trace: $st");
     });
+    print(".listened");
   } catch (e, st) {
     print("eerror: $e, stack trace: $st");
   }
