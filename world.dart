@@ -5,7 +5,8 @@ import 'dart:async';
 class World {
   World(this.w, this.h, this.world, void Function() callback) {
     Timer.periodic(Duration(seconds: 1), (Timer timer) {
-      List<List<int>> todo = [];
+      List<List<int>> toRemove = [];
+      List<List<int>> enemiesToAdd = [];
       for (MapEntry<List<int>, int> entry in world.entries) {
         if (entry.value == 1) {
           List<List<int>> possible = surrounded(entry.key);
@@ -15,10 +16,14 @@ class World {
                   element2[1] == element[1] &&
                   world[element] == 0), orElse: () => null);
          //print(working);
-         if(working != null) todo.add(working);
+         if(working != null) toRemove.add(working);
+        } else if (entry.value == 0 && !toRemove.contains(entry.key)) {
+          toRemove.add(entry.key);
+          enemiesToAdd.add([(entry.key[0]+1) % w, entry.key[1]]);
         }
       }
-      for(List<int> thing in todo) world.remove(thing);
+      for(List<int> thing in toRemove) world.remove(thing);
+      for(List<int> thing in enemiesToAdd) world[thing] = 0;
       callback();
     });
   }

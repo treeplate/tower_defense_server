@@ -22,8 +22,8 @@ Future<void> test() async {
     void Function() callback;
     print("Creating world...");
     World world = World(
-      3,
-      3,
+      5,
+      5,
       {
         [1, 1]: 0,
       },
@@ -41,7 +41,7 @@ Future<void> test() async {
 
         }
       };
-    print("Created callBACK")
+    print("Created callBACK");
 
 
     server.listen((Socket socket) {
